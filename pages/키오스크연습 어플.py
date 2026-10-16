@@ -649,4 +649,3 @@ renderCart();
 
 </body>
 </html>
-

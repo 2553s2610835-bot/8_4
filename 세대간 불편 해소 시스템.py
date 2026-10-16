@@ -122,4 +122,3 @@ with col2:
     if st.button("❌ 주문 취소"):
         st.session_state.cart = {}
         st.rerun()
-

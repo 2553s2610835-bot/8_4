@@ -1,221 +1,176 @@
 import streamlit as st
-import time
+from PIL import Image
 
-# 1. 페이지 설정
+# 1. 페이지 기본 설정 및 타이틀
 st.set_page_config(
-    page_title="mPako (m파코)",
+    page_title="m파코 (mPako)",
     page_icon="🐶",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    layout="centered"
 )
 
-# 2. 커스텀 CSS (모바일 스타일 및 깔끔한 UI 적용)
+# 기본 커스텀 CSS (모바일 앱 느낌 레이아웃 및 스타일링)
 st.markdown("""
-<style>
-    /* 전체 배경 및 컨테이너 스타일 */
-    .stApp {
-        max-width: 450px;
-        margin: 0 auto;
-        border-radius: 20px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
-    }
-    /* 타이틀 영역 */
-    .header-title {
+    <style>
+    .main-title {
         text-align: center;
         font-weight: bold;
-        font-size: 22px;
-        padding: 10px 0;
+        font-size: 28px;
+        margin-bottom: 20px;
     }
-    /* 카드/박스 스타일 */
-    .custom-card {
-        background-color: #f8f9fa;
+    .sub-info {
+        background-color: #f0f2f6;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 13px;
+        color: #555;
+        margin-top: 15px;
+    }
+    .card {
+        border: 1px solid #e0e0e0;
         border-radius: 12px;
         padding: 15px;
-        margin-bottom: 15px;
-        border: 1px solid #e9ecef;
-    }
-    /* 하단 네비게이션 바 스타일 */
-    div[data-testid="stHorizontalBlock"] {
         background-color: #ffffff;
-        padding: 5px 0;
+        margin-bottom: 10px;
     }
-</style>
+    </style>
 """, unsafe_allow_html=True)
 
-# 3. 세션 상태 초기화 (페이지 이동 관리)
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "홈"
+# 하단 Navigation 메뉴 구성 (시안 4개 탭 구조 반영)
+st.markdown("<h2 class='main-title'>🐶 m파코 (mPako)</h2>", unsafe_allow_html=True)
 
-if "is_recording" not in st.session_state:
-    st.session_state.is_recording = False
+tabs = st.tabs(["🏠 홈 (양방향)", "📷 캡처 번역", "🎙️ 음성/숏폼", "📚 사전/보관함"])
 
-# 앱 헤더 (상단)
-st.markdown("<div class='header-title'>🐶 m파코 (mPako)</div>", unsafe_allow_html=True)
 
-# ----------------------------------------------------
-# [화면 1] 홈 - 양방향 텍스트 번역 (Default)
-# ----------------------------------------------------
-if st.session_state.current_page == "홈":
-    st.subheader("[홈] 양방향 텍스트 번역")
+# ==========================================
+# 탭 1: [홈] 양방향 텍스트 번역 (Default)
+# ==========================================
+with tabs[0]:
+    st.caption("양방향 텍스트 번역 (MZ어 ↔ 표준어)")
     
-    # 번역 방향 및 톤 선택
-    col1, col2, col3 = st.columns([1, 0.3, 1])
+    # 방향 및 톤 선택 UI
+    col1, col2 = st.columns([1, 1])
     with col1:
-        source_lang = st.selectbox("출발", ["MZ어", "표준어"], index=0, label_visibility="collapsed")
+        direction = st.selectbox("번역 방향", ["MZ어 ➡️ 표준어", "표준어 ➡️ MZ어"])
     with col2:
-        st.markdown("<h3 style='text-align: center; margin: 0;'>⇄</h3>", unsafe_allow_html=True)
-    with col3:
-        target_lang = st.selectbox("도착", ["표준어", "MZ어"], index=0, label_visibility="collapsed")
-        
-    tone = st.selectbox("톤 선택", ["비즈니스", "헤어감성", "기본"], index=0)
+        tone = st.selectbox("톤 선택", ["비즈니스", "해탈감성", "기본"])
     
     # 입력 창
-    input_text = st.text_area("번역할 텍스트 입력", value='"이번 프로젝트 폼 미쳤다 ㄱㄱㄱㄱㄱ"', height=100)
+    user_text = st.text_area(
+        "번역할 문장을 입력하세요", 
+        value="이번 프로젝트 폼 미쳤다 ㄱㄱㄱㄱㄱ",
+        height=100
+    )
     
     if st.button("번역하기", use_container_width=True, type="primary"):
-        # 예시 번역 로직
-        st.session_state.translated_text = '"이 프로젝트는 매우 뛰어난 성과를 보여주고 있습니다."'
-    
-    # 번역 결과 표시
-    translated_result = st.session_state.get("translated_text", '"이 프로젝트는 매우 뛰어난 성과를 보여주고 있습니다."')
-    
-    st.markdown("---")
-    st.markdown(f"**번역 결과:**\n\n### {translated_result}")
-    
-    # 결과 액션 버튼
-    btn_col1, btn_col2, btn_col3, btn_col4 = st.columns(4)
-    with btn_col1:
-        if st.button("🔊 듣기"): st.toast("음성을 재생합니다.")
-    with btn_col2:
-        if st.button("📋 복사"): st.toast("클립보드에 복사되었습니다.")
-    with btn_col3:
-        if st.button("⭐ 저장"): st.toast("보관함에 저장되었습니다.")
-    with btn_col4:
-        if st.button("🔗 공유"): st.toast("공유 링크가 생성되었습니다.")
+        st.markdown("---")
+        st.markdown("**[번역 결과]**")
         
-    # 문맥 팁
-    st.info("💡 **문맥 팁:** '폼 미쳤다'는 기량/성능이 뛰어난다는 뜻입니다.")
+        # 예시 번역 동작 (실제 서비스 구현 시 OpenAI API 등을 연동하는 파트입니다)
+        if direction == "MZ어 ➡️ 표준어":
+            result_text = "이 프로젝트는 매우 뛰어난 성과를 보여주고 있습니다."
+            tip_text = "💡 '폼 미쳤다'는 기량/실력이 뛰어남을 의미합니다."
+        else:
+            result_text = "이번 프로젝트 폼 미쳤다 ㄷㄷ"
+            tip_text = "💡 진지한 어조를 캐주얼한 MZ 스타일로 변환했습니다."
+            
+        st.info(f"✨ {result_text}")
+        
+        # 하단 팁 / 보충 설명
+        st.markdown(f"<div class='sub-info'>{tip_text}</div>", unsafe_allow_html=True)
+        
+        # 기능 버튼 (듣기, 복사, 저장, 공유 시뮬레이션)
+        b1, b2, b3, b4 = st.columns(4)
+        with b1: st.button("🔊 듣기")
+        with b2: st.button("📋 복사")
+        with b3: st.button("⭐ 저장")
+        with b4: st.button("🔗 공유")
 
-# ----------------------------------------------------
-# [화면 2] 캡처 - 카톡/SNS 캡처 번역
-# ----------------------------------------------------
-elif st.session_state.current_page == "캡처":
-    st.subheader("🖼️ 카톡/SNS 캡처 번역")
+
+# ==========================================
+# 탭 2: 카톡 / SNS 캡처 번역 (OCR)
+# ==========================================
+with tabs[1]:
+    st.subheader("카톡/SNS 캡처 번역")
+    st.caption("카톡, DM, 밈 짤방 이미지를 올리면 글자를 인식해 번역합니다.")
     
-    # 이미지 업로드 영역
-    uploaded_file = st.file_uploader("[📷 이미지 업로드 Area]\n카톡/DM/밀당 캡처 이미지를 올려주세요", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("이미지를 업로드하세요 (카톡/DM/짤방)", type=["png", "jpg", "jpeg"])
     
-    # 옵션 토글
-    col_sw1, col_sw2 = st.columns(2)
-    with col_sw1:
-        st.checkbox("📋 클립보드서 선택", value=False)
-    with col_sw2:
-        st.checkbox("🔒 프로필/이름 훔쳐 보기 방지", value=True)
-        
+    toggle_option = st.checkbox("프로필/이름 블러 처리", value=True)
+    
     if uploaded_file is not None:
-        st.image(uploaded_file, caption="업로드된 이미지", use_container_width=True)
-        if st.button("캡처 이미지 분석 및 번역", use_container_width=True, type="primary"):
-            st.success("스캔 완료! 표준어로 번역되었습니다.")
+        image = Image.open(uploaded_file)
+        st.image(image, caption="업로드된 이미지", use_column_width=True)
+        
+        if st.button("스캔 및 번역 실행", use_container_width=True):
+            st.success("이미지 텍스트 스캔 완료!")
+            st.markdown("""
+            **[스캔 인식 결과]**
+            > "아 뇌절 오지네..."
+            
+            **[표준어 번역]**
+            > "동일한 말을 과도하게 반복하여 피로감을 유발하네요."
+            """)
 
     st.markdown("---")
-    st.markdown("**최근 스캔**")
-    scan_col1, scan_col2, scan_col3 = st.columns(3)
-    with scan_col1:
-        st.button("💬 카톡_1")
-    with scan_col2:
-        st.button("✉️ DM_02")
-    with scan_col3:
-        st.button("📸 팀채팅")
+    st.caption("📷 최근 스캔한 이미지 목록")
+    rec_col1, rec_col2, rec_col3 = st.columns(3)
+    rec_col1.button("카톡 1")
+    rec_col2.button("DM_02")
+    rec_col3.button("짤방 1")
 
-# ----------------------------------------------------
-# [화면 3] 음성 - Voice 음성숏폼 번역
-# ----------------------------------------------------
-elif st.session_state.current_page == "음성":
-    st.subheader("🎙️ Voice 음성숏폼 번역")
+
+# ==========================================
+# 탭 3: Voice 음성 / 숏폼 번역
+# ==========================================
+with tabs[2]:
+    st.subheader("실시간 음성 / 숏폼 번역")
     
-    # 모드 선택
-    v_mode = st.radio("모드 선택", ["📱 플로팅 오버레이", "💬 대화 모드"], horizontal=True)
+    m_col1, m_col2 = st.columns(2)
+    with m_col1:
+        st.button("📱 플로팅 오버레이", use_container_width=True)
+    with m_col2:
+        st.button("💬 대화 모드", use_container_width=True)
+        
+    st.markdown("---")
     
-    st.markdown("<br>", unsafe_allow_html=True)
+    # 음성 인식 상태 표시 시뮬레이션
+    is_listening = st.toggle("🎙️ 실시간 번역 시작 / 정지", value=False)
     
-    # 음성 인식 상태 표시
-    st.write("〰️〰️〰️〰️ (음성 수집 중...) 〰️〰️〰️〰️")
-    
-    st.write("**[인식된 음성]**")
-    st.warning('"아 오늘 출근하자마자 억까 당해서 게임밝음^"')
-    
-    st.write("**[실시간 번역]**")
-    st.success('"오늘 출근 직후 억울한 상항을 겪어서 매우 화가 난 상태입니다."')
-    
-    # 녹음 시작/정지 버튼
-    if not st.session_state.is_recording:
-        if st.button("🔴 실시간 번역 시작", use_container_width=True, type="primary"):
-            st.session_state.is_recording = True
-            st.rerun()
+    if is_listening:
+        st.warning("🎧 음성을 수집/분석하고 있습니다...")
+        
+        st.markdown("<div class='card'><b>[인식된 음성]</b><br>'아 오늘 출근하자마자 억까 당해서 게임터짐ㅠ'</div>", unsafe_allow_html=True)
+        st.markdown("<div class='card'><b>[실시간 해석]</b><br>'오늘 출근 직후 억울한 상황을 겪어서 업무 진행이 매우 차질을 빚고 있습니다.'</div>", unsafe_allow_html=True)
     else:
-        if st.button("⏹️ 실시간 번역 정지", use_container_width=True):
-            st.session_state.is_recording = False
-            st.rerun()
+        st.info("버튼을 켜면 실시간 자막 번역이 시작됩니다.")
 
-# ----------------------------------------------------
-# [화면 4] 사전 - 보관함 & 실시간 밈 사전
-# ----------------------------------------------------
-elif st.session_state.current_page == "사전":
+
+# ==========================================
+# 탭 4: [사전] 보관함 & 실시간 밈 사전
+# ==========================================
+with tabs[3]:
     st.subheader("📚 보관함 & 실시간 밈 사전")
     
-    # 검색창
-    search_query = st.text_input("🔍 신조어 / 밈 검색어 입력", placeholder="예: 중꺾마, 억까...")
+    search_query = st.text_input("🔍 신조어 / 밈 단어 검색", placeholder="예: 중꺾마, 폼 미쳤다")
     
-    # 탭 메뉴
-    tab1, tab2 = st.tabs(["⭐ 즐겨찾기 단어", "🔥 요즘 트렌드 밈 TOP 10"])
+    sub_tab1, sub_tab2 = st.tabs(["⭐ 즐겨찾기 밀억", "🔥 요즘 트렌드 밈 TOP 10"])
     
-    with tab1:
-        st.write("저장한 단어 목록이 여기에 표시됩니다.")
-        st.caption("- 폼 미쳤다")
-        st.caption("- 억까")
+    with sub_tab1:
+        st.write("보관한 단어가 없습니다.")
         
-    with tab2:
-        st.markdown("**🔥 오늘 많이 검색된 MZ어**")
+    with sub_tab2:
+        st.markdown("### 🔥 오늘 많이 검색된 MZ어")
         
         memes = [
-            {"num": 1, "title": "중꺾마", "desc": "중요한 것은 꺾이지 않는 마음"},
-            {"num": 2, "title": "폼 미쳤다", "desc": "기량이 뛰어난 상태"},
-            {"num": 3, "title": "억까", "desc": "억지로 비판하거나 억울한 상황"},
-            {"num": 4, "title": "T발 C야", "desc": "이성적(T)인 반응에 상처받을 때 사용"},
+            ("1. 중꺾마", "중요한 것은 꺾이지 않는 마음"),
+            ("2. 폼 미쳤다", "기량이나 솜씨가 매우 뛰어남"),
+            ("3. 억까", "억지로 까기 (억울하게 당하거나 나쁜 상황)"),
+            ("4. T발 C야?", "이성적(T)인 반응에 대해 서운함을 표할 때 쓰는 표현")
         ]
         
-        for meme in memes:
+        for title, desc in memes:
             with st.container():
                 c1, c2 = st.columns([4, 1])
-                with c1:
-                    st.markdown(f"**{meme['num']}. {meme['title']}**")
-                    st.caption(f"- {meme['desc']}")
-                with c2:
-                    st.button("⭐", key=f"star_{meme['num']}")
-                st.markdown("<hr style='margin:5px 0;'>", unsafe_allow_html=True)
-
-# ----------------------------------------------------
-# 하단 네비게이션 바 (공통 고정)
-# ----------------------------------------------------
-st.markdown("---")
-nav_col1, nav_col2, nav_col3, nav_col4 = st.columns(4)
-
-with nav_col1:
-    if st.button("🏠\n홈", use_container_width=True):
-        st.session_state.current_page = "홈"
-        st.rerun()
-
-with nav_col2:
-    if st.button("📷\n캡처", use_container_width=True):
-        st.session_state.current_page = "캡처"
-        st.rerun()
-
-with nav_col3:
-    if st.button("🎙️\n음성", use_container_width=True):
-        st.session_state.current_page = "음성"
-        st.rerun()
-
-with nav_col4:
-    if st.button("📚\n사전", use_container_width=True):
-        st.session_state.current_page = "사전"
-        st.rerun()
+                c1.markdown(f"**{title}**\n- {desc}")
+                c2.button("⭐", key=title)
+                st.markdown("---")

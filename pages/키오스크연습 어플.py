@@ -1,4 +1,7 @@
+import streamlit as st
+import time
 
+st.set_page_config
 <!DOCTYPE html>
 <html lang="ko">
 <head>

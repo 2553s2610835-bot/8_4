@@ -8,7 +8,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# 메뉴 데이터
 MENU = {
     "커피": [
         ("아메리카노", 4500, "🧊☕"),
@@ -19,6 +18,9 @@ MENU = {
         ("콜드브루", 5000, "🧋"),
     ],
     "음료": [
+        ("망고요거트", 6000, "🥭"),
+        ("딸기주얼리 밀크티", 5500, "🍓"),
+        ("또팡", 4500, "🧋"),
         ("딸기 스무디", 6000, "🍓"),
         ("초코라떼", 5000, "🍫"),
         ("레몬에이드", 5000, "🍋"),
@@ -36,300 +38,66 @@ MENU = {
     ],
 }
 
-
-
-# 화면 디자인 - 파스텔 연핑크 테마
-
 st.markdown("""
-
 <style>
-
 .stApp {
-
-    background-color: #FFF5F7;
-
-    color: #59454B;
-
+    background-color: #f4f3ef;
+    color: #202725;
 }
-
 .block-container {
-
     max-width: 1500px;
-
     padding-top: 1rem;
-
-    padding-bottom: 2rem;
-
 }
-
-/* 상단 브랜드 헤더 */
-
 .header {
-
-    background: linear-gradient(135deg, #F6C9D5, #FBE1E7);
-
-    color: #704B57;
-
-    padding: 25px;
-
-    border: 1px solid #F2D2DA;
-
-    border-radius: 18px;
-
-    box-shadow: 0 4px 14px #E8B9C633;
-
+    background: #19201f;
+    color: white;
+    padding: 22px;
+    border-radius: 14px 14px 0 0;
 }
-
 .header h1 {
-
-    color: #704B57;
-
     margin: 0;
-
-    font-size: 32px;
-
-    letter-spacing: 1px;
-
+    font-size: 30px;
 }
-
 .header p {
-
-    margin: 5px 0 0 4px;
-
+    margin: 4px 0 0 4px;
     letter-spacing: 3px;
-
     font-size: 11px;
-
-    color: #986E7A;
-
 }
-
-/* 메뉴 카드 */
-
 .menu-card {
-
-    background: #FFFFFF;
-
-    border: 1px solid #F4DCE2;
-
-    border-radius: 16px;
-
-    padding: 14px 10px;
-
-    text-align: center;
-
-    min-height: 130px;
-
-    box-shadow: 0 3px 10px #E8B9C61A;
-
-    transition: 0.2s ease;
-
-}
-
-.menu-emoji {
-
-    font-size: 44px;
-
-    margin-bottom: 7px;
-
-}
-
-.menu-card b {
-
-    color: #654B53;
-
-    font-size: 15px;
-
-}
-
-.price {
-
-    color: #C66F8A;
-
-    font-weight: bold;
-
-    font-size: 17px;
-
-}
-
-/* 모든 버튼 */
-
-div.stButton > button {
-
-    border-radius: 11px;
-
-    min-height: 40px;
-
-    border: 1px solid #F0CAD5;
-
-    background-color: #FFFFFF;
-
-    color: #9B6274;
-
-    font-weight: 600;
-
-    transition: all 0.2s ease;
-
-}
-
-div.stButton > button:hover {
-
-    background-color: #FCE3EA;
-
-    border-color: #E7A8BB;
-
-    color: #8B5065;
-
-}
-
-/* 주요 버튼 */
-
-div.stButton > button[kind="primary"] {
-
-    background: #EAAFC1;
-
-    border: 1px solid #EAAFC1;
-
-    color: #FFFFFF;
-
-}
-
-div.stButton > button[kind="primary"]:hover {
-
-    background: #DE93AB;
-
-    border-color: #DE93AB;
-
-    color: #FFFFFF;
-
-}
-
-/* 입력 선택창 */
-
-div[data-baseweb="select"] > div {
-
-    background-color: #FFFFFF;
-
-    border-color: #F0CAD5;
-
-    border-radius: 10px;
-
-}
-
-/* 구분선 */
-
-hr {
-
-    border-color: #F1D9E0;
-
-}
-
-/* 알림 상자 */
-
-div[data-testid="stAlert"] {
-
+    background: white;
+    border: 1px solid #deded9;
     border-radius: 12px;
-
+    padding: 12px;
+    text-align: center;
+    min-height: 115px;
 }
-
-/* 주문 내역 및 기본 텍스트 */
-
-h1, h2, h3 {
-
-    color: #704B57;
-
+.menu-emoji {
+    font-size: 42px;
 }
-
-[data-testid="stCaptionContainer"] {
-
-    color: #A17F89;
-
+.price {
+    font-weight: bold;
+    font-size: 17px;
 }
-
-/* 주문 완료 메시지 */
-
-div[data-testid="stAlert"][kind="success"] {
-
-    background-color: #FCE8EE;
-
+div.stButton > button {
+    border-radius: 8px;
+    min-height: 40px;
 }
-
-/* 모바일 화면 */
-
-@media (max-width: 768px) {
-
-    .header {
-
-        padding: 18px;
-
-        border-radius: 14px;
-
-    }
-
-    .header h1 {
-
-        font-size: 27px;
-
-    }
-
-    .menu-card {
-
-        padding: 10px 5px;
-
-        min-height: 120px;
-
-    }
-
-    .menu-emoji {
-
-        font-size: 36px;
-
-    }
-
+div.stButton > button[kind="primary"] {
+    background: #29443e;
+    border-color: #29443e;
+    color: white;
 }
-
+.order-choice {
+    background: white;
+    border: 1px solid #deded9;
+    border-radius: 16px;
+    padding: 25px 15px;
+    text-align: center;
+}
 </style>
-
 """, unsafe_allow_html=True)
 
-# 직접 메뉴 추가 기능
-with st.expander("🩷 나만의 메뉴 추가하기"):
-    st.caption("메뉴 이름, 가격, 카테고리를 입력해 새로운 메뉴를 추가하세요.")
-
-    with st.form("add_custom_menu", clear_on_submit=True):
-        custom_name = st.text_input("메뉴 이름", placeholder="예: 망고라떼")
-        custom_price = st.number_input(
-            "가격 (원)", min_value=500, max_value=50000,
-            value=4500, step=500
-        )
-        custom_category = st.selectbox(
-            "카테고리", ["커피", "음료", "디저트"]
-        )
-        custom_emoji = st.selectbox(
-            "메뉴 아이콘", ["🥭", "🍓", "🧋", "☕", "🍰", "🍋", "🍫", "🥤"]
-        )
-
-        submitted = st.form_submit_button(
-            "메뉴 추가하기", use_container_width=True
-        )
-
-        if submitted:
-            if not custom_name.strip():
-                st.error("메뉴 이름을 입력해 주세요.")
-            elif any(
-                item[0] == custom_name.strip()
-                for items in MENU.values()
-                for item in items
-            ):
-                st.warning("이미 등록된 메뉴입니다.")
-            else:
-                MENU[custom_category].append(
-                    (custom_name.strip(), int(custom_price), custom_emoji)
-                )
-                st.success(f"'{custom_name.strip()}' 메뉴를 추가했어요!")
-                st.rerun()
-
-# 주문 상태 초기화
+# 주문 상태
 if "cart" not in st.session_state:
     st.session_state.cart = {}
 
@@ -338,6 +106,9 @@ if "category" not in st.session_state:
 
 if "receipt" not in st.session_state:
     st.session_state.receipt = None
+
+if "order_type" not in st.session_state:
+    st.session_state.order_type = None
 
 
 def won(amount):
@@ -375,12 +146,60 @@ st.markdown("""
 
 st.write("")
 
+# 첫 화면: 주문 방식 선택
+if st.session_state.order_type is None:
+    st.title("주문 방식을 선택해주세요")
+    st.caption("이용하실 방법을 선택한 후 메뉴를 골라주세요.")
+
+    col1, col2 = st.columns(2, gap="large")
+
+    with col1:
+        st.markdown("""
+        <div class="order-choice">
+            <div style="font-size:65px">🍽️</div>
+            <h2>매장 이용</h2>
+            <p>카페 안에서 편하게 즐기기</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button(
+            "매장에서 먹기",
+            key="dine_in",
+            use_container_width=True,
+            type="primary"
+        ):
+            st.session_state.order_type = "매장 이용"
+            st.rerun()
+
+    with col2:
+        st.markdown("""
+        <div class="order-choice">
+            <div style="font-size:65px">🥡</div>
+            <h2>포장 주문</h2>
+            <p>테이크아웃으로 가져가기</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button(
+            "포장하기",
+            key="takeout",
+            use_container_width=True,
+            type="primary"
+        ):
+            st.session_state.order_type = "포장"
+            st.rerun()
+
+    st.divider()
+    st.caption("CAFE 24 · 키오스크 연습 앱")
+    st.stop()
+
+
+# 메뉴 화면
 left, center, right = st.columns(
     [0.8, 2.5, 1.35],
     gap="medium"
 )
 
-# 왼쪽 카테고리
 with left:
     st.subheader("메뉴")
 
@@ -403,12 +222,14 @@ with left:
             st.rerun()
 
     st.divider()
-    st.caption("키오스크 연습")
-    st.caption("① 메뉴 선택")
-    st.caption("② 수량 확인")
-    st.caption("③ 주문하기")
+    st.caption(f"주문 방식: {st.session_state.order_type}")
 
-# 가운데 상품 목록
+    if st.button("주문 방식 변경", use_container_width=True):
+        st.session_state.order_type = None
+        st.session_state.cart = {}
+        st.session_state.receipt = None
+        st.rerun()
+
 with center:
     category = st.session_state.category
 
@@ -453,22 +274,20 @@ with center:
                     add_item(name, price)
                     st.rerun()
 
-# 오른쪽 주문 내역
 with right:
     st.subheader("주문 내역")
+    st.caption(f"이용 방법: {st.session_state.order_type}")
     st.divider()
 
     if not st.session_state.cart:
-        st.markdown(
-            """
-            <div style="text-align:center;padding:55px 5px;color:#858585">
-                <div style="font-size:45px">🛒</div>
-                선택한 메뉴가 없습니다.<br>
-                메뉴를 선택해주세요.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <div style="text-align:center;padding:45px 5px;color:#858585">
+            <div style="font-size:45px">🛒</div>
+            선택한 메뉴가 없습니다.<br>
+            메뉴를 선택해주세요.
+        </div>
+        """, unsafe_allow_html=True)
+
     else:
         for name, item in list(st.session_state.cart.items()):
             st.markdown(f"**{name}**")
@@ -530,13 +349,13 @@ with right:
                     for name, item in st.session_state.cart.items()
                 },
                 "total": total_price(),
-                "time": datetime.now().strftime(
-                    "%Y-%m-%d %H:%M"
-                )
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "order_type": st.session_state.order_type
             }
             st.rerun()
 
-# 주문 완료 화면
+
+# 주문 완료 영수증
 if st.session_state.receipt:
     receipt = st.session_state.receipt
 
@@ -545,6 +364,7 @@ if st.session_state.receipt:
 
     st.subheader("주문 확인서")
     st.write(f"주문 시각: {receipt['time']}")
+    st.write(f"주문 방식: **{receipt['order_type']}**")
 
     for name, item in receipt["items"].items():
         st.write(
@@ -552,12 +372,13 @@ if st.session_state.receipt:
             f"{won(item['price'] * item['qty'])}"
         )
 
-    st.markdown(f"### 결제 예정 금액: {won(receipt['total'])}")
+    st.markdown(f"### 총 주문 금액: {won(receipt['total'])}")
     st.info("연습용 앱이며 실제 결제는 진행되지 않습니다.")
 
     if st.button("새 주문 시작하기"):
         st.session_state.cart = {}
         st.session_state.receipt = None
+        st.session_state.order_type = None
         st.session_state.category = "커피"
         st.rerun()
 

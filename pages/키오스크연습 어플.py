@@ -36,56 +36,260 @@ MENU = {
     ],
 }
 
-# 화면 디자인
+
+
+# 화면 디자인 - 파스텔 연핑크 테마
+
 st.markdown("""
+
 <style>
+
 .stApp {
-    background-color: #f4f3ef;
-    color: #202725;
+
+    background-color: #FFF5F7;
+
+    color: #59454B;
+
 }
+
 .block-container {
+
     max-width: 1500px;
+
     padding-top: 1rem;
+
+    padding-bottom: 2rem;
+
 }
+
+/* 상단 브랜드 헤더 */
+
 .header {
-    background: #19201f;
-    color: white;
-    padding: 22px;
-    border-radius: 14px 14px 0 0;
+
+    background: linear-gradient(135deg, #F6C9D5, #FBE1E7);
+
+    color: #704B57;
+
+    padding: 25px;
+
+    border: 1px solid #F2D2DA;
+
+    border-radius: 18px;
+
+    box-shadow: 0 4px 14px #E8B9C633;
+
 }
+
 .header h1 {
+
+    color: #704B57;
+
     margin: 0;
-    font-size: 30px;
+
+    font-size: 32px;
+
+    letter-spacing: 1px;
+
 }
+
 .header p {
-    margin: 4px 0 0 4px;
+
+    margin: 5px 0 0 4px;
+
     letter-spacing: 3px;
+
     font-size: 11px;
+
+    color: #986E7A;
+
 }
+
+/* 메뉴 카드 */
+
 .menu-card {
-    background: white;
-    border: 1px solid #deded9;
-    border-radius: 12px;
-    padding: 12px;
+
+    background: #FFFFFF;
+
+    border: 1px solid #F4DCE2;
+
+    border-radius: 16px;
+
+    padding: 14px 10px;
+
     text-align: center;
-    min-height: 120px;
+
+    min-height: 130px;
+
+    box-shadow: 0 3px 10px #E8B9C61A;
+
+    transition: 0.2s ease;
+
 }
+
 .menu-emoji {
-    font-size: 42px;
+
+    font-size: 44px;
+
+    margin-bottom: 7px;
+
 }
+
+.menu-card b {
+
+    color: #654B53;
+
+    font-size: 15px;
+
+}
+
 .price {
+
+    color: #C66F8A;
+
     font-weight: bold;
+
     font-size: 17px;
+
 }
+
+/* 모든 버튼 */
+
 div.stButton > button {
-    border-radius: 8px;
-    min-height: 38px;
+
+    border-radius: 11px;
+
+    min-height: 40px;
+
+    border: 1px solid #F0CAD5;
+
+    background-color: #FFFFFF;
+
+    color: #9B6274;
+
+    font-weight: 600;
+
+    transition: all 0.2s ease;
+
 }
+
+div.stButton > button:hover {
+
+    background-color: #FCE3EA;
+
+    border-color: #E7A8BB;
+
+    color: #8B5065;
+
+}
+
+/* 주요 버튼 */
+
 div.stButton > button[kind="primary"] {
-    background: #29443e;
-    border-color: #29443e;
+
+    background: #EAAFC1;
+
+    border: 1px solid #EAAFC1;
+
+    color: #FFFFFF;
+
 }
+
+div.stButton > button[kind="primary"]:hover {
+
+    background: #DE93AB;
+
+    border-color: #DE93AB;
+
+    color: #FFFFFF;
+
+}
+
+/* 입력 선택창 */
+
+div[data-baseweb="select"] > div {
+
+    background-color: #FFFFFF;
+
+    border-color: #F0CAD5;
+
+    border-radius: 10px;
+
+}
+
+/* 구분선 */
+
+hr {
+
+    border-color: #F1D9E0;
+
+}
+
+/* 알림 상자 */
+
+div[data-testid="stAlert"] {
+
+    border-radius: 12px;
+
+}
+
+/* 주문 내역 및 기본 텍스트 */
+
+h1, h2, h3 {
+
+    color: #704B57;
+
+}
+
+[data-testid="stCaptionContainer"] {
+
+    color: #A17F89;
+
+}
+
+/* 주문 완료 메시지 */
+
+div[data-testid="stAlert"][kind="success"] {
+
+    background-color: #FCE8EE;
+
+}
+
+/* 모바일 화면 */
+
+@media (max-width: 768px) {
+
+    .header {
+
+        padding: 18px;
+
+        border-radius: 14px;
+
+    }
+
+    .header h1 {
+
+        font-size: 27px;
+
+    }
+
+    .menu-card {
+
+        padding: 10px 5px;
+
+        min-height: 120px;
+
+    }
+
+    .menu-emoji {
+
+        font-size: 36px;
+
+    }
+
+}
+
 </style>
+
 """, unsafe_allow_html=True)
 
 # 주문 상태 초기화

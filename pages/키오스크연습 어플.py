@@ -292,6 +292,43 @@ div[data-testid="stAlert"][kind="success"] {
 
 """, unsafe_allow_html=True)
 
+# 직접 메뉴 추가 기능
+with st.expander("🩷 나만의 메뉴 추가하기"):
+    st.caption("메뉴 이름, 가격, 카테고리를 입력해 새로운 메뉴를 추가하세요.")
+
+    with st.form("add_custom_menu", clear_on_submit=True):
+        custom_name = st.text_input("메뉴 이름", placeholder="예: 망고라떼")
+        custom_price = st.number_input(
+            "가격 (원)", min_value=500, max_value=50000,
+            value=4500, step=500
+        )
+        custom_category = st.selectbox(
+            "카테고리", ["커피", "음료", "디저트"]
+        )
+        custom_emoji = st.selectbox(
+            "메뉴 아이콘", ["🥭", "🍓", "🧋", "☕", "🍰", "🍋", "🍫", "🥤"]
+        )
+
+        submitted = st.form_submit_button(
+            "메뉴 추가하기", use_container_width=True
+        )
+
+        if submitted:
+            if not custom_name.strip():
+                st.error("메뉴 이름을 입력해 주세요.")
+            elif any(
+                item[0] == custom_name.strip()
+                for items in MENU.values()
+                for item in items
+            ):
+                st.warning("이미 등록된 메뉴입니다.")
+            else:
+                MENU[custom_category].append(
+                    (custom_name.strip(), int(custom_price), custom_emoji)
+                )
+                st.success(f"'{custom_name.strip()}' 메뉴를 추가했어요!")
+                st.rerun()
+
 # 주문 상태 초기화
 if "cart" not in st.session_state:
     st.session_state.cart = {}

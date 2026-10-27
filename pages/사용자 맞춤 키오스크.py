@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 
 # --- 1. 페이지 기본 설정 ---
 st.set_page_config(
@@ -8,34 +7,23 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- 2. 최신 Google GenAI API 설정 (gemini-2.5-flash-lite) ---
-ai_client = None
-gemini_available = False
-
-try:
-    from google import genai
-    api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
-    if api_key:
-        # 최신 google-genai 클라이언트 생성
-        ai_client = genai.Client(api_key=api_key)
-        gemini_available = True
-except Exception:
-    gemini_available = False
-
-# --- 3. 세션 상태 초기화 ---
+# --- 2. 세션 상태 초기화 ---
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'age_group' not in st.session_state:
     st.session_state.age_group = "👵 어르신 쉬운 모드"
 if 'page' not in st.session_state:
     st.session_state.page = "홈"
+if 'time_left' not in st.session_state:
+    st.session_state.time_left = 90  # 어르신 기본 대기시간 90초
 
 # 홈으로 돌아가기(초기화) 함수
 def reset_to_home():
     st.session_state.cart = []
     st.session_state.page = "홈"
+    st.session_state.time_left = 90
 
-# --- 4. 공통 카페 메뉴 데이터 ---
+# --- 3. 공통 카페 메뉴 데이터 ---
 COMMON_MENU_DATABASE = {
     "☕ 커피류": {
         "따뜻한 아메리카노": {"price": 3000, "img": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400"},
@@ -62,7 +50,7 @@ COMMON_MENU_DATABASE = {
     }
 }
 
-# --- 5. 연령별/모드별 UI & 스타일 설정 ---
+# --- 4. 연령별/모드별 UI & 스타일 설정 ---
 AGE_CONFIG = {
     "👵 어르신 쉬운 모드": {
         "badge": "👵 어르신을 위한 큰 글씨 모드",
@@ -102,7 +90,7 @@ AGE_CONFIG = {
     }
 }
 
-# --- 6. 사이드바 ---
+# --- 5. 사이드바 ---
 st.sidebar.title("⚙️ 키오스크 설정")
 selected_age = st.sidebar.radio(
     "👤 서비스 모드 선택",
@@ -118,7 +106,7 @@ if st.sidebar.button("🏠 처음으로 (주문 취소)", key="side_home", use_c
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 동적 CSS ---
+# --- 6. 동적 CSS ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -198,7 +186,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 8. 상단 뱃지 및 대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
+# --- 7. 상단 뱃지 및 대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
 st.markdown(f"<span style='background-color:{config['theme_color']}; color:white; padding:8px 18px; border-radius:24px; font-size:{config['text_size']}; font-weight:bold;'>{config['badge']}</span>", unsafe_allow_html=True)
 st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
 
@@ -218,42 +206,28 @@ with nav_col3:
 
 st.markdown("---")
 
-# --- 9. 페이지 1: 홈 화면 ---
+# --- 8. 페이지 1: 홈 화면 (타임아웃 시간 연장 기능 반영) ---
 if st.session_state.page == "홈":
     st.markdown(f"<div class='custom-title'>{config['welcome']}</div>", unsafe_allow_html=True)
     
-    st.markdown("<div class='custom-sub'>🤖 AI 인공지능 음성 도우미</div>", unsafe_allow_html=True)
+    # [3번 기능] 시간 연장 안내 및 대형 연장 버튼
+    st.markdown("<div class='custom-sub'>⏱️ 주문 이용시간 안내</div>", unsafe_allow_html=True)
     
-    user_question = st.text_input("궁금하신 점을 편하게 질문해 주세요 (예: 속 편한 차 추천해 줘, 제일 인기 있는 디저트가 뭐야?)")
-    if user_question:
-        if gemini_available and ai_client:
-            try:
-                prompt = f"""
-                당신은 친절한 카페 AI 도우미입니다.
-                현재 손님이 선택한 모드: {st.session_state.age_group}
-                질문: "{user_question}"
-                
-                선택 모드에 맞춰 완전히 한국어로 친절하고 쉬운 어조로 2문장 이내로 답변해 주세요. 영어나 외래어 전문 용어를 사용하지 마세요.
-                """
-                response = ai_client.models.generate_content(
-                    model='gemini-2.5-flash-lite',
-                    contents=prompt,
-                )
-                if response and response.text:
-                    st.success(f"🤖 **AI 도우미 답변:** {response.text}")
-                else:
-                    st.info("🤖 **AI 도우미:** 따뜻한 쌍화차나 부드러운 카스테라를 추천해 드려요!")
-            except Exception as e:
-                st.warning("AI 도우미 연결 중 오류가 발생했습니다. 상단의 **'☕ 메뉴'** 버튼을 눌러 메뉴를 직접 골라주세요.")
-        else:
-            st.info("💡 **AI 안내:** Secrets에 `GEMINI_API_KEY`가 입력되어 있지 않거나 연결 중입니다. 상단 **'☕ 메뉴'** 버튼으로 편하게 주문하세요.")
+    time_col1, time_col2 = st.columns([2, 1])
+    with time_col1:
+        st.info(f"⏳ **남은 이용시간:** **{st.session_state.time_left}초**\n\n(천천히 메뉴를 고르세요. 시간이 부족하시면 오른쪽 버튼을 눌러주세요.)")
+    with time_col2:
+        if st.button("➕ 시간 연장 (+30초)", key="add_time", use_container_width=True):
+            st.session_state.time_left += 30
+            st.toast("이용시간이 30초 연장되었습니다!")
+            st.rerun()
 
     st.markdown("---")
     if st.button("☕ 주문하러 가기 (메뉴 선택)", key="go_to_menu", use_container_width=True):
         st.session_state.page = "메뉴"
         st.rerun()
 
-# --- 10. 페이지 2: 메뉴 화면 ---
+# --- 9. 페이지 2: 메뉴 화면 ---
 elif st.session_state.page == "메뉴":
     st.markdown(f"<div class='custom-title'>⭐ 인기 추천 메뉴</div>", unsafe_allow_html=True)
     st.markdown("<div class='custom-text'>자주 찾으시는 추천 메뉴입니다. 버튼을 누르면 장바구니에 담깁니다.</div>", unsafe_allow_html=True)
@@ -323,7 +297,7 @@ elif st.session_state.page == "메뉴":
     else:
         st.markdown("<div class='custom-text'>아직 선택하신 메뉴가 없습니다. 위에서 메뉴를 눌러주세요.</div>", unsafe_allow_html=True)
 
-# --- 11. 페이지 3: 결제 화면 ---
+# --- 10. 페이지 3: 결제 화면 ---
 elif st.session_state.page == "결제":
     st.markdown(f"<div class='custom-title'>💳 주문 확인 및 결제</div>", unsafe_allow_html=True)
     
@@ -344,12 +318,12 @@ elif st.session_state.page == "결제":
             if st.button("💳 신용카드 / 체크카드 결제", key="pay_card"):
                 st.balloons()
                 st.success("결제가 완료되었습니다! 진동벨을 받아가세요.")
-                st.session_state.cart = []
+                reset_to_home()
         with col_pay2:
             if st.button("📱 카카오페이 / 모바일 결제", key="pay_mobile"):
                 st.balloons()
                 st.success("간편 결제가 완료되었습니다!")
-                st.session_state.cart = []
+                reset_to_home()
 
     st.markdown("---")
     

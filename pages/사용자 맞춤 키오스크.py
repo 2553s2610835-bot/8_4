@@ -35,7 +35,7 @@ def reset_to_home():
     st.session_state.cart = []
     st.session_state.page = "홈"
 
-# --- 4. 공통 카페 메뉴 데이터 (이미지 URL 포함) ---
+# --- 4. 공통 카페 메뉴 데이터 ---
 COMMON_MENU_DATABASE = {
     "☕ 커피류": {
         "따뜻한 아메리카노": {"price": 3000, "img": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400"},
@@ -70,7 +70,8 @@ AGE_CONFIG = {
         "sub_size": "26px",
         "text_size": "22px",
         "btn_padding": "18px 24px",
-        "btn_size": "24px",
+        "btn_size": "26px",  # 대형 버튼 적용
+        "nav_btn_size": "30px", # 상단 네비게이션 대형 글자
         "sidebar_size": "22px",
         "theme_color": "#1B5E20",
         "bg_color": "#FFFDE7",
@@ -87,7 +88,8 @@ AGE_CONFIG = {
         "sub_size": "20px",
         "text_size": "16px",
         "btn_padding": "12px 18px",
-        "btn_size": "17px",
+        "btn_size": "18px",
+        "nav_btn_size": "22px",
         "sidebar_size": "18px",
         "theme_color": "#1565C0",
         "bg_color": "#F8F9FA",
@@ -100,7 +102,7 @@ AGE_CONFIG = {
     }
 }
 
-# --- 6. 사이드바 (모드 선택만 남김) ---
+# --- 6. 사이드바 (모드 선택만 유지) ---
 st.sidebar.title("⚙️ 키오스크 설정")
 selected_age = st.sidebar.radio(
     "👤 서비스 모드 선택",
@@ -116,7 +118,7 @@ if st.sidebar.button("🏠 처음으로 (주문 취소)", key="side_home", use_c
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 동적 CSS ---
+# --- 7. 동적 CSS (상단 버튼 및 메뉴 카드 확대) ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -160,15 +162,23 @@ st.markdown(f"""
         border-radius: 12px;
     }}
 
+    /* 전체 버튼 기본 스타일 */
     .stButton > button {{
         font-size: {config['btn_size']} !important;
         font-weight: bold !important;
         padding: {config['btn_padding']} !important;
-        border-radius: 14px !important;
+        border-radius: 16px !important;
         border: 2px solid {config['theme_color']} !important;
         width: 100% !important;
     }}
     
+    /* 상단 네비게이션 버튼(홈/메뉴/결제) 전용 대형 스타일 */
+    div[data-testid="column"] .stButton > button {{
+        font-size: {config['nav_btn_size']} !important;
+        padding: 20px 10px !important;
+        min-height: 75px !important;
+    }}
+
     section[data-testid="stSidebar"] div {{
         font-size: {config['sidebar_size']} !important;
     }}
@@ -179,7 +189,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 8. 상단 뱃지 및 화면 이동 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
+# --- 8. 상단 뱃지 및 초대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
 st.markdown(f"<span style='background-color:{config['theme_color']}; color:white; padding:8px 18px; border-radius:24px; font-size:{config['text_size']}; font-weight:bold;'>{config['badge']}</span>", unsafe_allow_html=True)
 st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
 

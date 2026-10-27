@@ -8,16 +8,16 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- 2. Gemini API 설정 (gemini-2.5-flash-lite) ---
+# --- 2. 최신 Google GenAI API 설정 (gemini-2.5-flash-lite) ---
+ai_client = None
 gemini_available = False
-model = None
 
 try:
-    import google.generativeai as genai
+    from google import genai
     api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if api_key:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash-lite')
+        # 최신 google-genai 클라이언트 생성
+        ai_client = genai.Client(api_key=api_key)
         gemini_available = True
 except Exception:
     gemini_available = False
@@ -71,7 +71,7 @@ AGE_CONFIG = {
         "text_size": "24px",
         "btn_padding": "18px 24px",
         "btn_size": "24px",
-        "nav_btn_size": "36px",  # 상단 네비게이션 초대형 글자
+        "nav_btn_size": "36px",
         "sidebar_size": "22px",
         "theme_color": "#1B5E20",
         "bg_color": "#FFFDE7",
@@ -112,14 +112,13 @@ selected_age = st.sidebar.radio(
 st.session_state.age_group = selected_age
 
 st.sidebar.markdown("---")
-# 버튼 글자가 한 줄로 들어가도록 설정
 if st.sidebar.button("🏠 처음으로 (주문 취소)", key="side_home", use_container_width=True):
     reset_to_home()
     st.rerun()
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 동적 CSS (한 줄 유지 및 글자 크기 지정) ---
+# --- 7. 동적 CSS ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -163,7 +162,6 @@ st.markdown(f"""
         border-radius: 12px;
     }}
 
-    /* 버튼 글자 크기 및 줄바꿈 금지(한 줄 처리) */
     .stButton > button, 
     .stButton > button * {{
         font-size: {config['btn_size']} !important;
@@ -179,7 +177,6 @@ st.markdown(f"""
         width: 100% !important;
     }}
     
-    /* 상단 네비게이션 버튼(홈/메뉴/결제) 전용 대형 스타일 */
     div[data-testid="column"] .stButton > button,
     div[data-testid="column"] .stButton > button * {{
         font-size: {config['nav_btn_size']} !important;
@@ -229,24 +226,27 @@ if st.session_state.page == "홈":
     
     user_question = st.text_input("궁금하신 점을 편하게 질문해 주세요 (예: 속 편한 차 추천해 줘, 제일 인기 있는 디저트가 뭐야?)")
     if user_question:
-        if gemini_available and model:
+        if gemini_available and ai_client:
             try:
                 prompt = f"""
                 당신은 친절한 카페 AI 도우미입니다.
                 현재 손님이 선택한 모드: {st.session_state.age_group}
                 질문: "{user_question}"
                 
-                선택 모드에 맞춰 완전히 한국어로 친절하고 쉬운 어조로 2문장 이내로 답변해 주세요. 영어나 전문 용어를 사용하지 마세요.
+                선택 모드에 맞춰 완전히 한국어로 친절하고 쉬운 어조로 2문장 이내로 답변해 주세요. 영어나 외래어 전문 용어를 사용하지 마세요.
                 """
-                response = model.generate_content(prompt)
-                if hasattr(response, 'text') and response.text:
+                response = ai_client.models.generate_content(
+                    model='gemini-2.5-flash-lite',
+                    contents=prompt,
+                )
+                if response and response.text:
                     st.success(f"🤖 **AI 도우미 답변:** {response.text}")
                 else:
-                    st.info("🤖 **AI 도우미:** 따뜻한 쌍화차나 카스테라 메뉴를 추천해 드려요!")
-            except Exception:
-                st.warning("AI 도우미 연결 중 오류가 발생했습니다. 상단의 **'☕ 메뉴'** 버튼을 눌러 메뉴를 선택해 주세요.")
+                    st.info("🤖 **AI 도우미:** 따뜻한 쌍화차나 부드러운 카스테라를 추천해 드려요!")
+            except Exception as e:
+                st.warning("AI 도우미 연결 중 오류가 발생했습니다. 상단의 **'☕ 메뉴'** 버튼을 눌러 메뉴를 직접 골라주세요.")
         else:
-            st.info("💡 **AI 안내:** 상단의 **'☕ 메뉴'** 버튼을 누르시면 커피, 음료, 디저트를 바로 선택하실 수 있습니다.")
+            st.info("💡 **AI 안내:** Secrets에 `GEMINI_API_KEY`가 입력되어 있지 않거나 연결 중입니다. 상단 **'☕ 메뉴'** 버튼으로 편하게 주문하세요.")
 
     st.markdown("---")
     if st.button("☕ 주문하러 가기 (메뉴 선택)", key="go_to_menu", use_container_width=True):

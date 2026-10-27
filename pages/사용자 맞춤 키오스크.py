@@ -231,4 +231,51 @@ elif page == "2. 전체 카페 메뉴 주문":
 
     st.markdown("---")
     
-    st.markdown("<div class='custom-title'>🛒 내가 선택한 메뉴 목록</div>",
+    st.markdown("<div class='custom-title'>🛒 내가 선택한 메뉴 목록</div>", unsafe_allow_html=True)
+    if st.session_state.cart:
+        total_price = 0
+        for i, cart_item in enumerate(st.session_state.cart):
+            col_a, col_b = st.columns([3, 1])
+            col_a.markdown(f"<div class='custom-text'>• <b>{cart_item['name']}</b> ({cart_item['price']:,}원)</div>", unsafe_allow_html=True)
+            total_price += cart_item['price']
+            if col_b.button("❌ 취소", key=f"del_{i}"):
+                st.session_state.cart.pop(i)
+                st.rerun()
+        st.markdown(f"<div class='custom-title' style='color:red; margin-top:15px;'>💰 총 금액: {total_price:,}원</div>", unsafe_allow_html=True)
+    else:
+        st.markdown("<div class='custom-text'>아직 선택하신 메뉴가 없습니다. 위에서 메뉴를 눌러주세요.</div>", unsafe_allow_html=True)
+
+# --- 10. 페이지 3: 간소화 결제 및 직원 호출 ---
+elif page == "3. 간소화 결제 및 직원 호출":
+    st.markdown(f"<div class='custom-title'>💳 주문 확인 및 결제</div>", unsafe_allow_html=True)
+    
+    if not st.session_state.cart:
+        st.warning("선택한 메뉴가 없습니다. 2페이지에서 메뉴를 먼저 눌러주세요.")
+    else:
+        st.markdown("<div class='custom-sub'>📝 최종 주문 내역</div>", unsafe_allow_html=True)
+        total_price = sum(item['price'] for item in st.session_state.cart)
+        for item in st.session_state.cart:
+            st.markdown(f"<div class='custom-text'>• <b>{item['name']}</b> — {item['price']:,}원</div>", unsafe_allow_html=True)
+            
+        st.markdown(f"<div class='custom-title' style='color:red; margin-top:20px;'>최종 결제 금액: {total_price:,}원</div>", unsafe_allow_html=True)
+        st.markdown("---")
+        
+        st.markdown("<div class='custom-sub'>👇 결제 방법을 눌러주세요</div>", unsafe_allow_html=True)
+        col_pay1, col_pay2 = st.columns(2)
+        with col_pay1:
+            if st.button("💳 신용카드 / 체크카드 결제", key="pay_card"):
+                st.balloons()
+                st.success("결제가 완료되었습니다! 진동벨을 받아가세요.")
+                st.session_state.cart = []
+        with col_pay2:
+            if st.button("📱 카카오페이 / 모바일 결제", key="pay_mobile"):
+                st.balloons()
+                st.success("간편 결제가 완료되었습니다!")
+                st.session_state.cart = []
+
+    st.markdown("---")
+    
+    st.markdown("<div class='custom-sub'>🆘 도움이 필요하신가요?</div>", unsafe_allow_html=True)
+    if st.button("🔔 직원 호출하기 (도움 필요)", key="call_staff"):
+        st.warning("직원을 불렀습니다. 잠시만 기다려 주시면 친절히 안내해 드리겠습니다!")
+                

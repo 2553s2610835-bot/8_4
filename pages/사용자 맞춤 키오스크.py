@@ -17,7 +17,6 @@ try:
     api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if api_key:
         genai.configure(api_key=api_key)
-        # 안전한 gemini-2.5-flash-lite 모델 호출
         model = genai.GenerativeModel('gemini-2.5-flash-lite')
         gemini_available = True
 except Exception:
@@ -28,6 +27,13 @@ if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'age_group' not in st.session_state:
     st.session_state.age_group = "👵 어르신 쉬운 모드"
+if 'page' not in st.session_state:
+    st.session_state.page = "홈"
+
+# 홈으로 돌아가기(초기화) 함수
+def reset_to_home():
+    st.session_state.cart = []
+    st.session_state.page = "홈"
 
 # --- 4. 공통 카페 메뉴 데이터 (이미지 URL 포함) ---
 COMMON_MENU_DATABASE = {
@@ -94,7 +100,7 @@ AGE_CONFIG = {
     }
 }
 
-# --- 6. 사이드바 ---
+# --- 6. 사이드바 (모드 선택만 남김) ---
 st.sidebar.title("⚙️ 키오스크 설정")
 selected_age = st.sidebar.radio(
     "👤 서비스 모드 선택",
@@ -103,14 +109,14 @@ selected_age = st.sidebar.radio(
 )
 st.session_state.age_group = selected_age
 
-page = st.sidebar.radio(
-    "📍 화면 이동",
-    ["1. 맞춤 시작 및 안내", "2. 전체 카페 메뉴 주문", "3. 간소화 결제 및 직원 호출"]
-)
+st.sidebar.markdown("---")
+if st.sidebar.button("🏠 처음으로 (주문 취소)", key="side_home", use_container_width=True):
+    reset_to_home()
+    st.rerun()
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 동적 CSS (메뉴 높이/크기 완전 통일) ---
+# --- 7. 동적 CSS ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -134,7 +140,6 @@ st.markdown(f"""
         line-height: 1.5;
     }}
     
-    /* 어르신 모드 카드 전체 높이 및 규격 동일화 */
     .menu-card {{
         background-color: white;
         border: 2px solid {config['theme_color']};
@@ -155,7 +160,6 @@ st.markdown(f"""
         border-radius: 12px;
     }}
 
-    /* 버튼 크기 및 터치 영역 통일 */
     .stButton > button {{
         font-size: {config['btn_size']} !important;
         font-weight: bold !important;
@@ -165,7 +169,6 @@ st.markdown(f"""
         width: 100% !important;
     }}
     
-    /* 사이드바 글씨 크기 설정 */
     section[data-testid="stSidebar"] div {{
         font-size: {config['sidebar_size']} !important;
     }}
@@ -176,10 +179,29 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 8. 페이지 1: 맞춤 시작 및 안내 ---
-if page == "1. 맞춤 시작 및 안내":
-    st.markdown(f"<span style='background-color:{config['theme_color']}; color:white; padding:8px 18px; border-radius:24px; font-size:{config['text_size']}; font-weight:bold;'>{config['badge']}</span>", unsafe_allow_html=True)
-    st.markdown(f"<div class='custom-title' style='margin-top:15px;'>{config['welcome']}</div>", unsafe_allow_html=True)
+# --- 8. 상단 뱃지 및 화면 이동 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
+st.markdown(f"<span style='background-color:{config['theme_color']}; color:white; padding:8px 18px; border-radius:24px; font-size:{config['text_size']}; font-weight:bold;'>{config['badge']}</span>", unsafe_allow_html=True)
+st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+
+nav_col1, nav_col2, nav_col3 = st.columns(3)
+with nav_col1:
+    if st.button("🏠 홈", key="nav_home", use_container_width=True):
+        st.session_state.page = "홈"
+        st.rerun()
+with nav_col2:
+    if st.button("☕ 메뉴", key="nav_menu", use_container_width=True):
+        st.session_state.page = "메뉴"
+        st.rerun()
+with nav_col3:
+    if st.button("💳 결제", key="nav_pay", use_container_width=True):
+        st.session_state.page = "결제"
+        st.rerun()
+
+st.markdown("---")
+
+# --- 9. 페이지 1: 홈 화면 ---
+if st.session_state.page == "홈":
+    st.markdown(f"<div class='custom-title'>{config['welcome']}</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='custom-sub'>🤖 AI 인공지능 음성 도우미</div>", unsafe_allow_html=True)
     
@@ -199,20 +221,21 @@ if page == "1. 맞춤 시작 및 안내":
                     st.success(f"🤖 **AI 도우미 답변:** {response.text}")
                 else:
                     st.info("🤖 **AI 도우미:** 따뜻한 쌍화차나 카스테라 메뉴를 추천해 드려요!")
-            except Exception as e:
-                st.warning("AI 도우미 연결 중 오류가 발생했습니다. 키오스크 안내 화면에서 메뉴를 자유롭게 골라주세요.")
+            except Exception:
+                st.warning("AI 도우미 연결 중 오류가 발생했습니다. 상단의 **'☕ 메뉴'** 버튼을 눌러 메뉴를 선택해 주세요.")
         else:
-            st.info("💡 **AI 안내:** 현재 API 키가 설정되지 않았거나 연결 대기 중입니다. 상단 및 사이드바 메뉴를 이용해 손쉽게 주문하실 수 있습니다.")
+            st.info("💡 **AI 안내:** 상단의 **'☕ 메뉴'** 버튼을 누르시면 커피, 음료, 디저트를 바로 선택하실 수 있습니다.")
 
     st.markdown("---")
-    st.success("👈 메뉴를 선택하시려면 사이드바에서 **'2. 전체 카페 메뉴 주문'**을 눌러주세요.")
+    if st.button("☕ 주문하러 가기 (메뉴 선택)", key="go_to_menu", use_container_width=True):
+        st.session_state.page = "메뉴"
+        st.rerun()
 
-# --- 9. 페이지 2: 전체 카페 메뉴 주문 ---
-elif page == "2. 전체 카페 메뉴 주문":
+# --- 10. 페이지 2: 메뉴 화면 ---
+elif st.session_state.page == "메뉴":
     st.markdown(f"<div class='custom-title'>⭐ 인기 추천 메뉴</div>", unsafe_allow_html=True)
     st.markdown("<div class='custom-text'>자주 찾으시는 추천 메뉴입니다. 버튼을 누르면 장바구니에 담깁니다.</div>", unsafe_allow_html=True)
     
-    # 추천 메뉴 카드 (높이 및 규격 완벽 통일)
     rec_cols = st.columns(len(config['recommended']))
     for idx, item in enumerate(config['recommended']):
         with rec_cols[idx]:
@@ -232,7 +255,6 @@ elif page == "2. 전체 카페 메뉴 주문":
 
     st.markdown("---")
     
-    # 전체 카테고리 메뉴 카드 (높이 및 규격 완벽 통일)
     st.markdown("<div class='custom-title'>☕ 전체 카테고리 메뉴</div>", unsafe_allow_html=True)
     
     cat_names = list(COMMON_MENU_DATABASE.keys())
@@ -260,7 +282,7 @@ elif page == "2. 전체 카페 메뉴 주문":
 
     st.markdown("---")
     
-    # 장바구니 목록
+    # 장바구니 및 결제 버튼
     st.markdown("<div class='custom-title'>🛒 내가 선택한 메뉴 목록</div>", unsafe_allow_html=True)
     if st.session_state.cart:
         total_price = 0
@@ -272,15 +294,19 @@ elif page == "2. 전체 카페 메뉴 주문":
                 st.session_state.cart.pop(i)
                 st.rerun()
         st.markdown(f"<div class='custom-title' style='color:red; margin-top:15px;'>💰 총 금액: {total_price:,}원</div>", unsafe_allow_html=True)
+        
+        if st.button("💳 결제하러 가기", key="go_to_pay", use_container_width=True):
+            st.session_state.page = "결제"
+            st.rerun()
     else:
         st.markdown("<div class='custom-text'>아직 선택하신 메뉴가 없습니다. 위에서 메뉴를 눌러주세요.</div>", unsafe_allow_html=True)
 
-# --- 10. 페이지 3: 간소화 결제 및 직원 호출 ---
-elif page == "3. 간소화 결제 및 직원 호출":
+# --- 11. 페이지 3: 결제 화면 ---
+elif st.session_state.page == "결제":
     st.markdown(f"<div class='custom-title'>💳 주문 확인 및 결제</div>", unsafe_allow_html=True)
     
     if not st.session_state.cart:
-        st.warning("선택한 메뉴가 없습니다. 2페이지에서 메뉴를 먼저 눌러주세요.")
+        st.warning("선택한 메뉴가 없습니다. 상단의 '☕ 메뉴' 버튼을 눌러 메뉴를 선택해 주세요.")
     else:
         st.markdown("<div class='custom-sub'>📝 최종 주문 내역</div>", unsafe_allow_html=True)
         total_price = sum(item['price'] for item in st.session_state.cart)

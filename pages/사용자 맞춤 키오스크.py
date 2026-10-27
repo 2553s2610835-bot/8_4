@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 
 # --- 1. 페이지 기본 설정 ---
 st.set_page_config(
@@ -15,7 +16,7 @@ if 'age_group' not in st.session_state:
 if 'page' not in st.session_state:
     st.session_state.page = "홈"
 if 'time_left' not in st.session_state:
-    st.session_state.time_left = 90  # 어르신 기본 대기시간 90초
+    st.session_state.time_left = 90  # 기본 대기시간 90초
 
 # 홈으로 돌아가기(초기화) 함수
 def reset_to_home():
@@ -186,10 +187,24 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 7. 상단 뱃지 및 대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
-st.markdown(f"<span style='background-color:{config['theme_color']}; color:white; padding:8px 18px; border-radius:24px; font-size:{config['text_size']}; font-weight:bold;'>{config['badge']}</span>", unsafe_allow_html=True)
-st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+# --- 7. 전역 공통 상단 헤더 (뱃지 + 전역 타이머 + 연장 버튼) ---
+head_col1, head_col2, head_col3 = st.columns([2, 2, 1])
 
+with head_col1:
+    st.markdown(f"<span style='background-color:{config['theme_color']}; color:white; padding:8px 18px; border-radius:24px; font-size:{config['text_size']}; font-weight:bold;'>{config['badge']}</span>", unsafe_allow_html=True)
+
+with head_col2:
+    st.markdown(f"<div style='font-size:{config['sub_size']}; font-weight:bold; color:red; line-height:2.2;'>⏳ 남은 시간: {st.session_state.time_left}초</div>", unsafe_allow_html=True)
+
+with head_col3:
+    if st.button("➕ 시간 연장 (+30초)", key="global_add_time", use_container_width=True):
+        st.session_state.time_left += 30
+        st.toast("이용시간이 30초 연장되었습니다!")
+        st.rerun()
+
+st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+
+# --- 8. 상단 대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
 nav_col1, nav_col2, nav_col3 = st.columns(3)
 with nav_col1:
     if st.button("🏠 홈", key="nav_home", use_container_width=True):
@@ -206,28 +221,16 @@ with nav_col3:
 
 st.markdown("---")
 
-# --- 8. 페이지 1: 홈 화면 (타임아웃 시간 연장 기능 반영) ---
+# --- 9. 페이지 1: 홈 화면 ---
 if st.session_state.page == "홈":
     st.markdown(f"<div class='custom-title'>{config['welcome']}</div>", unsafe_allow_html=True)
-    
-    # [3번 기능] 시간 연장 안내 및 대형 연장 버튼
-    st.markdown("<div class='custom-sub'>⏱️ 주문 이용시간 안내</div>", unsafe_allow_html=True)
-    
-    time_col1, time_col2 = st.columns([2, 1])
-    with time_col1:
-        st.info(f"⏳ **남은 이용시간:** **{st.session_state.time_left}초**\n\n(천천히 메뉴를 고르세요. 시간이 부족하시면 오른쪽 버튼을 눌러주세요.)")
-    with time_col2:
-        if st.button("➕ 시간 연장 (+30초)", key="add_time", use_container_width=True):
-            st.session_state.time_left += 30
-            st.toast("이용시간이 30초 연장되었습니다!")
-            st.rerun()
-
+    st.markdown("<div class='custom-text'>위의 버튼이나 아래 버튼을 눌러 원하시는 메뉴를 주문해 주세요.</div>", unsafe_allow_html=True)
     st.markdown("---")
     if st.button("☕ 주문하러 가기 (메뉴 선택)", key="go_to_menu", use_container_width=True):
         st.session_state.page = "메뉴"
         st.rerun()
 
-# --- 9. 페이지 2: 메뉴 화면 ---
+# --- 10. 페이지 2: 메뉴 화면 ---
 elif st.session_state.page == "메뉴":
     st.markdown(f"<div class='custom-title'>⭐ 인기 추천 메뉴</div>", unsafe_allow_html=True)
     st.markdown("<div class='custom-text'>자주 찾으시는 추천 메뉴입니다. 버튼을 누르면 장바구니에 담깁니다.</div>", unsafe_allow_html=True)
@@ -297,7 +300,7 @@ elif st.session_state.page == "메뉴":
     else:
         st.markdown("<div class='custom-text'>아직 선택하신 메뉴가 없습니다. 위에서 메뉴를 눌러주세요.</div>", unsafe_allow_html=True)
 
-# --- 10. 페이지 3: 결제 화면 ---
+# --- 11. 페이지 3: 결제 화면 ---
 elif st.session_state.page == "결제":
     st.markdown(f"<div class='custom-title'>💳 주문 확인 및 결제</div>", unsafe_allow_html=True)
     
@@ -330,3 +333,14 @@ elif st.session_state.page == "결제":
     st.markdown("<div class='custom-sub'>🆘 도움이 필요하신가요?</div>", unsafe_allow_html=True)
     if st.button("🔔 직원 호출하기 (도움 필요)", key="call_staff"):
         st.warning("직원을 불렀습니다. 잠시만 기다려 주시면 친절히 안내해 드리겠습니다!")
+
+# --- 12. 실시간 카운트다운 전역 로직 ---
+if st.session_state.time_left > 0:
+    time.sleep(1)
+    st.session_state.time_left -= 1
+    st.rerun()
+else:
+    st.warning("⏱️ 이용시간이 만료되어 처음 화면으로 돌아갑니다.")
+    time.sleep(2)
+    reset_to_home()
+    st.rerun()

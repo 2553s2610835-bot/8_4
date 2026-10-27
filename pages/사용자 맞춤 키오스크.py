@@ -10,11 +10,14 @@ st.set_page_config(
 
 # --- 2. Gemini API 설정 (gemini-2.5-flash-lite) ---
 gemini_available = False
+model = None
+
 try:
     import google.generativeai as genai
     api_key = st.secrets.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if api_key:
         genai.configure(api_key=api_key)
+        # 안전한 gemini-2.5-flash-lite 모델 호출
         model = genai.GenerativeModel('gemini-2.5-flash-lite')
         gemini_available = True
 except Exception:
@@ -57,12 +60,12 @@ COMMON_MENU_DATABASE = {
 AGE_CONFIG = {
     "👵 어르신 쉬운 모드": {
         "badge": "👵 어르신을 위한 큰 글씨 모드",
-        "title_size": "42px",
-        "sub_size": "28px",
-        "text_size": "24px",
-        "btn_padding": "20px 30px",
-        "btn_size": "26px",
-        "sidebar_size": "24px",
+        "title_size": "40px",
+        "sub_size": "26px",
+        "text_size": "22px",
+        "btn_padding": "18px 24px",
+        "btn_size": "24px",
+        "sidebar_size": "22px",
         "theme_color": "#1B5E20",
         "bg_color": "#FFFDE7",
         "welcome": "어르신, 반갑습니다! 천천히 보고 편하게 눌러주세요.",
@@ -91,7 +94,7 @@ AGE_CONFIG = {
     }
 }
 
-# --- 6. 사이드바 (모드 선택 및 화면 이동) ---
+# --- 6. 사이드바 ---
 st.sidebar.title("⚙️ 키오스크 설정")
 selected_age = st.sidebar.radio(
     "👤 서비스 모드 선택",
@@ -107,7 +110,7 @@ page = st.sidebar.radio(
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 모드 전용 동적 CSS ---
+# --- 7. 동적 CSS (메뉴 높이/크기 완전 통일) ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -123,25 +126,46 @@ st.markdown(f"""
     .custom-sub {{
         font-size: {config['sub_size']};
         font-weight: 700;
-        margin-top: 10px;
-        margin-bottom: 10px;
+        margin-top: 8px;
+        margin-bottom: 8px;
     }}
     .custom-text {{
         font-size: {config['text_size']};
-        line-height: 1.6;
+        line-height: 1.5;
     }}
-    /* 버튼 스타일 조정 */
+    
+    /* 어르신 모드 카드 전체 높이 및 규격 동일화 */
+    .menu-card {{
+        background-color: white;
+        border: 2px solid {config['theme_color']};
+        border-radius: 16px;
+        padding: 16px;
+        height: 480px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+    }}
+    
+    .menu-img {{
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+    }}
+
+    /* 버튼 크기 및 터치 영역 통일 */
     .stButton > button {{
         font-size: {config['btn_size']} !important;
         font-weight: bold !important;
         padding: {config['btn_padding']} !important;
-        border-radius: 16px !important;
+        border-radius: 14px !important;
         border: 2px solid {config['theme_color']} !important;
         width: 100% !important;
-        margin-top: 6px !important;
-        margin-bottom: 6px !important;
     }}
-    /* 사이드바 글자 크기 확대 */
+    
+    /* 사이드바 글씨 크기 설정 */
     section[data-testid="stSidebar"] div {{
         font-size: {config['sidebar_size']} !important;
     }}
@@ -158,23 +182,27 @@ if page == "1. 맞춤 시작 및 안내":
     st.markdown(f"<div class='custom-title' style='margin-top:15px;'>{config['welcome']}</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='custom-sub'>🤖 AI 인공지능 음성 도우미</div>", unsafe_allow_html=True)
-    if gemini_available:
-        user_question = st.text_input("궁금하신 점을 편하게 질문해 주세요 (예: 속 편한 차 추천해 줘, 제일 인기 있는 디저트가 뭐야?)")
-        if user_question:
+    
+    user_question = st.text_input("궁금하신 점을 편하게 질문해 주세요 (예: 속 편한 차 추천해 줘, 제일 인기 있는 디저트가 뭐야?)")
+    if user_question:
+        if gemini_available and model:
             try:
                 prompt = f"""
                 당신은 친절한 카페 AI 도우미입니다.
                 현재 손님이 선택한 모드: {st.session_state.age_group}
                 질문: "{user_question}"
                 
-                선택 모드에 맞춰 완전히 한국어로 친절하고 쉬운 어조로 2문장 이내로 답변해 주세요. 영어나 외래어 전문 용어를 사용하지 마세요.
+                선택 모드에 맞춰 완전히 한국어로 친절하고 쉬운 어조로 2문장 이내로 답변해 주세요. 영어나 전문 용어를 사용하지 마세요.
                 """
                 response = model.generate_content(prompt)
-                st.success(f"🤖 **AI 도우미 답변:** {response.text}")
-            except Exception:
-                st.warning("AI 도우미 응답 중 잠시 오류가 발생했습니다.")
-    else:
-        st.caption("※ GEMINI_API_KEY 설정 시 AI 맞춤 안내 기능이 활성화됩니다.")
+                if hasattr(response, 'text') and response.text:
+                    st.success(f"🤖 **AI 도우미 답변:** {response.text}")
+                else:
+                    st.info("🤖 **AI 도우미:** 따뜻한 쌍화차나 카스테라 메뉴를 추천해 드려요!")
+            except Exception as e:
+                st.warning("AI 도우미 연결 중 오류가 발생했습니다. 키오스크 안내 화면에서 메뉴를 자유롭게 골라주세요.")
+        else:
+            st.info("💡 **AI 안내:** 현재 API 키가 설정되지 않았거나 연결 대기 중입니다. 상단 및 사이드바 메뉴를 이용해 손쉽게 주문하실 수 있습니다.")
 
     st.markdown("---")
     st.success("👈 메뉴를 선택하시려면 사이드바에서 **'2. 전체 카페 메뉴 주문'**을 눌러주세요.")
@@ -184,21 +212,27 @@ elif page == "2. 전체 카페 메뉴 주문":
     st.markdown(f"<div class='custom-title'>⭐ 인기 추천 메뉴</div>", unsafe_allow_html=True)
     st.markdown("<div class='custom-text'>자주 찾으시는 추천 메뉴입니다. 버튼을 누르면 장바구니에 담깁니다.</div>", unsafe_allow_html=True)
     
-    # 추천 메뉴 (이미지 포함)
+    # 추천 메뉴 카드 (높이 및 규격 완벽 통일)
     rec_cols = st.columns(len(config['recommended']))
     for idx, item in enumerate(config['recommended']):
         with rec_cols[idx]:
-            st.image(item['img'], use_container_width=True)
-            st.markdown(f"<div class='custom-sub'>{item['name']}</div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='custom-text'>{item['desc']}</div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='custom-sub' style='color:{config['theme_color']};'>{item['price']:,}원</div>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='menu-card'>
+                    <div>
+                        <img src="{item['img']}" class='menu-img'>
+                        <div class='custom-sub'>{item['name']}</div>
+                        <div class='custom-text'>{item['desc']}</div>
+                    </div>
+                    <div class='custom-sub' style='color:{config['theme_color']};'>{item['price']:,}원</div>
+                </div>
+            """, unsafe_allow_html=True)
             if st.button(f"담기", key=f"rec_{idx}"):
                 st.session_state.cart.append({"name": item['name'], "price": item['price']})
                 st.toast(f"'{item['name']}' 담기 완료!")
 
     st.markdown("---")
     
-    # 전체 메뉴 (이미지 포함)
+    # 전체 카테고리 메뉴 카드 (높이 및 규격 완벽 통일)
     st.markdown("<div class='custom-title'>☕ 전체 카테고리 메뉴</div>", unsafe_allow_html=True)
     
     cat_names = list(COMMON_MENU_DATABASE.keys())
@@ -211,16 +245,22 @@ elif page == "2. 전체 카페 메뉴 주문":
             for item_idx, (item_name, item_data) in enumerate(items.items()):
                 c_idx = item_idx % 3
                 with item_cols[c_idx]:
-                    st.image(item_data['img'], use_container_width=True)
-                    st.markdown(f"<div class='custom-sub'>{item_name}</div>", unsafe_allow_html=True)
-                    st.markdown(f"<div class='custom-text' style='color:{config['theme_color']}; font-weight:bold;'>{item_data['price']:,}원</div>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                        <div class='menu-card'>
+                            <div>
+                                <img src="{item_data['img']}" class='menu-img'>
+                                <div class='custom-sub'>{item_name}</div>
+                            </div>
+                            <div class='custom-sub' style='color:{config['theme_color']};'>{item_data['price']:,}원</div>
+                        </div>
+                    """, unsafe_allow_html=True)
                     if st.button(f"선택하기", key=f"cat_{tab_idx}_{item_idx}"):
                         st.session_state.cart.append({"name": item_name, "price": item_data['price']})
                         st.toast(f"'{item_name}' 담기 완료!")
 
     st.markdown("---")
     
-    # 장바구니 영역
+    # 장바구니 목록
     st.markdown("<div class='custom-title'>🛒 내가 선택한 메뉴 목록</div>", unsafe_allow_html=True)
     if st.session_state.cart:
         total_price = 0

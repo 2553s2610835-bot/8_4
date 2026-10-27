@@ -24,7 +24,7 @@ except Exception:
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'age_group' not in st.session_state:
-    st.session_state.age_group = "👵 어르신 쉬운 모드 (60대 이상)"
+    st.session_state.age_group = "👵 어르신 쉬운 모드"
 
 # --- 4. 공통 카페 메뉴 데이터 ---
 COMMON_MENU_DATABASE = {
@@ -53,9 +53,9 @@ COMMON_MENU_DATABASE = {
     }
 }
 
-# --- 5. 연령별 UI & 스타일 설정 ---
+# --- 5. 연령별/모드별 UI & 스타일 설정 ---
 AGE_CONFIG = {
-    "👵 어르신 쉬운 모드 (60대 이상)": {
+    "👵 어르신 쉬운 모드": {
         "badge": "👵 어르신을 위한 큰 글씨 모드",
         "title_size": "42px",
         "sub_size": "28px",
@@ -73,40 +73,22 @@ AGE_CONFIG = {
             {"name": "부드러운 카스테라", "price": 3500, "desc": "입에서 녹는 촉촉하고 부드러운 빵"}
         ]
     },
-    "🧑 청년/장년 모드 (20~50대)": {
-        "badge": "⚡ 빠른 스피드 모드",
+    "☕ 일반 모드 (보통 모드)": {
+        "badge": "☕ 표준 주문 모드",
         "title_size": "28px",
         "sub_size": "20px",
         "text_size": "16px",
-        "btn_padding": "10px 16px",
-        "btn_size": "16px",
+        "btn_padding": "12px 18px",
+        "btn_size": "17px",
         "sidebar_size": "18px",
         "theme_color": "#1565C0",
         "bg_color": "#F8F9FA",
-        "welcome": "원하시는 메뉴를 빠르고 간편하게 선택하세요.",
-        "voice_guide": "에스프레소부터 에이드, 디저트까지 빠르게 주문하실 수 있습니다.",
+        "welcome": "원하시는 카페 음료와 디저트를 편리하게 선택해 보세요.",
+        "voice_guide": "아메리카노부터 달콤한 음료, 다양한 디저트까지 자유롭게 선택하실 수 있습니다.",
         "recommended": [
             {"name": "아이스 아메리카노", "price": 3000, "desc": "고소하고 깔끔한 원두 에스프레소"},
-            {"name": "시그니처 크림라떼", "price": 5200, "desc": "부드러운 수제 크림 라떼"},
-            {"name": "버터 소금빵", "price": 3200, "desc": "고소한 풍미의 바삭한 소금빵"}
-        ]
-    },
-    "🎈 어린이 모드 (10대 미만)": {
-        "badge": "🎈 어린이 맞춤 모드",
-        "title_size": "32px",
-        "sub_size": "22px",
-        "text_size": "18px",
-        "btn_padding": "12px 20px",
-        "btn_size": "18px",
-        "sidebar_size": "20px",
-        "theme_color": "#E65100",
-        "bg_color": "#FFF8E1",
-        "welcome": "안녕! 달콤한 딸기 라떼와 맛있는 빵을 골라볼까?",
-        "voice_guide": "어린이 손님 환영해요! 달콤하고 신나는 추천 메뉴를 골라보세요.",
-        "recommended": [
-            {"name": "리얼 생딸기 라떼", "price": 4800, "desc": "달콤한 딸기가 씹히는 인기 음료"},
-            {"name": "플레인 크로플", "price": 3800, "desc": "바삭하고 달콤한 인기 디저트"},
-            {"name": "달콤 유자차", "price": 4000, "desc": "새콤달콤 따뜻한 차"}
+            {"name": "리얼 생딸기 라떼", "price": 4800, "desc": "달콤한 딸기가 가득 들어간 محبوب 음료"},
+            {"name": "버터 소금빵", "price": 3200, "desc": "고소한 풍미의 바삭한 인기 베이커리"}
         ]
     }
 }
@@ -114,7 +96,7 @@ AGE_CONFIG = {
 # --- 6. 사이드바 (모드 선택 및 화면 이동) ---
 st.sidebar.title("⚙️ 키오스크 설정")
 selected_age = st.sidebar.radio(
-    "👤 연령대 모드 선택",
+    "👤 서비스 모드 선택",
     list(AGE_CONFIG.keys()),
     index=list(AGE_CONFIG.keys()).index(st.session_state.age_group)
 )
@@ -127,7 +109,7 @@ page = st.sidebar.radio(
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 어르신 모드 전용 동적 CSS (글씨, 버튼, 사이드바 크기 확대) ---
+# --- 7. 모드 전용 동적 CSS ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -150,7 +132,7 @@ st.markdown(f"""
         font-size: {config['text_size']};
         line-height: 1.6;
     }}
-    /* 버튼 초대형화 */
+    /* 버튼 스타일 조정 */
     .stButton > button {{
         font-size: {config['btn_size']} !important;
         font-weight: bold !important;
@@ -185,23 +167,23 @@ if page == "1. 맞춤 시작 & 음성 가이드":
         st.markdown(f"""
         <div class='custom-text'>
         - <b>선택 모드:</b> {st.session_state.age_group}<br>
-        - <b>선택 버튼:</b> 터치하기 편한 대형 버튼 제공<br>
-        - <b>인기 추천:</b> 연령대별 자주 찾는 메뉴 상단 자동 노출
+        - <b>선택 버튼:</b> 모드에 맞춘 직관적인 선택 버튼 제공<br>
+        - <b>인기 추천:</b> 모드별 자주 찾는 메뉴 상단 자동 노출
         </div>
         """, unsafe_allow_html=True)
         
     with col2:
         st.markdown("<div class='custom-sub'>🤖 AI 음성 도우미</div>", unsafe_allow_html=True)
         if gemini_available:
-            user_question = st.text_input("질문하세요 (예: 속 편한 차 추천해 줘, 부드러운 빵은 뭐야?)")
+            user_question = st.text_input("질문하세요 (예: 속 편한 차 추천해 줘, 제일 인기 있는 디저트가 뭐야?)")
             if user_question:
                 try:
                     prompt = f"""
                     당신은 친절한 카페 AI 도우미입니다.
-                    현재 손님 연령층: {st.session_state.age_group}
+                    현재 손님이 선택한 모드: {st.session_state.age_group}
                     질문: "{user_question}"
                     
-                    손님 연령층에 맞는 친절한 어조로 2문장 이내로 답변해 주세요.
+                    선택 모드에 맞춰 친절한 어조로 2문장 이내로 답변해 주세요.
                     """
                     response = model.generate_content(prompt)
                     st.success(f"🤖 **AI 답변:** {response.text}")
@@ -215,7 +197,7 @@ if page == "1. 맞춤 시작 & 음성 가이드":
 
 # --- 9. 페이지 2: 전체 카페 메뉴 주문 ---
 elif page == "2. 전체 카페 메뉴 주문":
-    st.markdown(f"<div class='custom-title'>⭐ 맞춤 추천 메뉴</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='custom-title'>⭐ 인기 추천 메뉴</div>", unsafe_allow_html=True)
     st.markdown("<div class='custom-text'>자주 찾으시는 추천 메뉴입니다. 버튼을 누르면 장바구니에 담깁니다.</div>", unsafe_allow_html=True)
     
     rec_cols = st.columns(len(config['recommended']))
@@ -248,4 +230,5 @@ elif page == "2. 전체 카페 메뉴 주문":
                         st.toast(f"'{item_name}' 담기 완료!")
 
     st.markdown("---")
-                
+    
+    st.markdown("<div class='custom-title'>🛒 내가 선택한 메뉴 목록</div>",

@@ -67,11 +67,11 @@ AGE_CONFIG = {
     "👵 어르신 쉬운 모드": {
         "badge": "👵 어르신을 위한 큰 글씨 모드",
         "title_size": "40px",
-        "sub_size": "26px",
-        "text_size": "22px",
+        "sub_size": "28px",
+        "text_size": "24px",
         "btn_padding": "18px 24px",
-        "btn_size": "26px",  # 대형 버튼 적용
-        "nav_btn_size": "30px", # 상단 네비게이션 대형 글자
+        "btn_size": "26px",
+        "nav_btn_size": "36px",  # 상단 네비게이션 초대형 글자
         "sidebar_size": "22px",
         "theme_color": "#1B5E20",
         "bg_color": "#FFFDE7",
@@ -102,7 +102,7 @@ AGE_CONFIG = {
     }
 }
 
-# --- 6. 사이드바 (모드 선택만 유지) ---
+# --- 6. 사이드바 ---
 st.sidebar.title("⚙️ 키오스크 설정")
 selected_age = st.sidebar.radio(
     "👤 서비스 모드 선택",
@@ -118,7 +118,7 @@ if st.sidebar.button("🏠 처음으로 (주문 취소)", key="side_home", use_c
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 동적 CSS (상단 버튼 및 메뉴 카드 확대) ---
+# --- 7. 동적 CSS (버튼 내부 텍스트 폰트 강제 확대) ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -162,21 +162,30 @@ st.markdown(f"""
         border-radius: 12px;
     }}
 
-    /* 전체 버튼 기본 스타일 */
-    .stButton > button {{
+    /* Streamlit 전체 버튼 내부 p 및 div 태그 글자 크기 강제 지정 */
+    .stButton > button, 
+    .stButton > button * {{
         font-size: {config['btn_size']} !important;
-        font-weight: bold !important;
+        font-weight: 800 !important;
+    }}
+    
+    .stButton > button {{
         padding: {config['btn_padding']} !important;
         border-radius: 16px !important;
         border: 2px solid {config['theme_color']} !important;
         width: 100% !important;
     }}
     
-    /* 상단 네비게이션 버튼(홈/메뉴/결제) 전용 대형 스타일 */
-    div[data-testid="column"] .stButton > button {{
+    /* 상단 네비게이션 버튼(홈/메뉴/결제) 내부 글자 및 높이 대형화 */
+    div[data-testid="column"] .stButton > button,
+    div[data-testid="column"] .stButton > button * {{
         font-size: {config['nav_btn_size']} !important;
-        padding: 20px 10px !important;
-        min-height: 75px !important;
+        font-weight: 900 !important;
+    }}
+    
+    div[data-testid="column"] .stButton > button {{
+        padding: 15px 5px !important;
+        min-height: 80px !important;
     }}
 
     section[data-testid="stSidebar"] div {{
@@ -189,7 +198,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 8. 상단 뱃지 및 초대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
+# --- 8. 상단 뱃지 및 대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
 st.markdown(f"<span style='background-color:{config['theme_color']}; color:white; padding:8px 18px; border-radius:24px; font-size:{config['text_size']}; font-weight:bold;'>{config['badge']}</span>", unsafe_allow_html=True)
 st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
 

@@ -70,7 +70,7 @@ AGE_CONFIG = {
         "sub_size": "28px",
         "text_size": "24px",
         "btn_padding": "18px 24px",
-        "btn_size": "26px",
+        "btn_size": "24px",
         "nav_btn_size": "36px",  # 상단 네비게이션 초대형 글자
         "sidebar_size": "22px",
         "theme_color": "#1B5E20",
@@ -112,13 +112,14 @@ selected_age = st.sidebar.radio(
 st.session_state.age_group = selected_age
 
 st.sidebar.markdown("---")
+# 버튼 글자가 한 줄로 들어가도록 설정
 if st.sidebar.button("🏠 처음으로 (주문 취소)", key="side_home", use_container_width=True):
     reset_to_home()
     st.rerun()
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 7. 동적 CSS (버튼 내부 텍스트 폰트 강제 확대) ---
+# --- 7. 동적 CSS (한 줄 유지 및 글자 크기 지정) ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -162,11 +163,13 @@ st.markdown(f"""
         border-radius: 12px;
     }}
 
-    /* Streamlit 전체 버튼 내부 p 및 div 태그 글자 크기 강제 지정 */
+    /* 버튼 글자 크기 및 줄바꿈 금지(한 줄 처리) */
     .stButton > button, 
     .stButton > button * {{
         font-size: {config['btn_size']} !important;
         font-weight: 800 !important;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
     }}
     
     .stButton > button {{
@@ -176,7 +179,7 @@ st.markdown(f"""
         width: 100% !important;
     }}
     
-    /* 상단 네비게이션 버튼(홈/메뉴/결제) 내부 글자 및 높이 대형화 */
+    /* 상단 네비게이션 버튼(홈/메뉴/결제) 전용 대형 스타일 */
     div[data-testid="column"] .stButton > button,
     div[data-testid="column"] .stButton > button * {{
         font-size: {config['nav_btn_size']} !important;

@@ -17,12 +17,21 @@ if 'page' not in st.session_state:
     st.session_state.page = "홈"
 if 'time_left' not in st.session_state:
     st.session_state.time_left = 90  # 기본 대기시간 90초
+if 'last_time' not in st.session_state:
+    st.session_state.last_time = time.time()
 
 # 홈으로 돌아가기(초기화) 함수
 def reset_to_home():
     st.session_state.cart = []
     st.session_state.page = "홈"
     st.session_state.time_left = 90
+    st.session_state.last_time = time.time()
+
+# 메뉴 담기 함수 (담기 누를 때 시간 30초 자동 연장)
+def add_to_cart(item_name, price):
+    st.session_state.cart.append({"name": item_name, "price": price})
+    st.session_state.time_left = max(st.session_state.time_left, 60)  # 담기 누르면 60초 보장
+    st.toast(f"'{item_name}' 담기 완료!")
 
 # --- 3. 공통 카페 메뉴 데이터 ---
 COMMON_MENU_DATABASE = {
@@ -91,7 +100,17 @@ AGE_CONFIG = {
     }
 }
 
-# --- 5. 사이드바 ---
+# --- 5. 타이머 경과 계산 로직 ---
+now = time.time()
+elapsed = int(now - st.session_state.last_time)
+if elapsed >= 1:
+    st.session_state.time_left -= elapsed
+    st.session_state.last_time = now
+
+if st.session_state.time_left <= 0:
+    reset_to_home()
+
+# --- 6. 사이드바 ---
 st.sidebar.title("⚙️ 키오스크 설정")
 selected_age = st.sidebar.radio(
     "👤 서비스 모드 선택",
@@ -107,7 +126,7 @@ if st.sidebar.button("🏠 처음으로 (주문 취소)", key="side_home", use_c
 
 config = AGE_CONFIG[st.session_state.age_group]
 
-# --- 6. 동적 CSS ---
+# --- 7. 동적 CSS ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -187,7 +206,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 7. 전역 공통 상단 헤더 (뱃지 + 전역 타이머 + 연장 버튼) ---
+# --- 8. 상단 공통 헤더 ---
 head_col1, head_col2, head_col3 = st.columns([2, 2, 1])
 
 with head_col1:
@@ -200,11 +219,10 @@ with head_col3:
     if st.button("➕ 시간 연장 (+30초)", key="global_add_time", use_container_width=True):
         st.session_state.time_left += 30
         st.toast("이용시간이 30초 연장되었습니다!")
-        st.rerun()
 
 st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
-# --- 8. 상단 대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
+# --- 9. 상단 대형 네비게이션 버튼 (홈 / 메뉴 / 결제) ---
 nav_col1, nav_col2, nav_col3 = st.columns(3)
 with nav_col1:
     if st.button("🏠 홈", key="nav_home", use_container_width=True):
@@ -221,7 +239,7 @@ with nav_col3:
 
 st.markdown("---")
 
-# --- 9. 페이지 1: 홈 화면 ---
+# --- 10. 페이지 1: 홈 화면 ---
 if st.session_state.page == "홈":
     st.markdown(f"<div class='custom-title'>{config['welcome']}</div>", unsafe_allow_html=True)
     st.markdown("<div class='custom-text'>위의 버튼이나 아래 버튼을 눌러 원하시는 메뉴를 주문해 주세요.</div>", unsafe_allow_html=True)
@@ -230,7 +248,7 @@ if st.session_state.page == "홈":
         st.session_state.page = "메뉴"
         st.rerun()
 
-# --- 10. 페이지 2: 메뉴 화면 ---
+# --- 11. 페이지 2: 메뉴 화면 ---
 elif st.session_state.page == "메뉴":
     st.markdown(f"<div class='custom-title'>⭐ 인기 추천 메뉴</div>", unsafe_allow_html=True)
     st.markdown("<div class='custom-text'>자주 찾으시는 추천 메뉴입니다. 버튼을 누르면 장바구니에 담깁니다.</div>", unsafe_allow_html=True)
@@ -249,8 +267,7 @@ elif st.session_state.page == "메뉴":
                 </div>
             """, unsafe_allow_html=True)
             if st.button(f"담기", key=f"rec_{idx}"):
-                st.session_state.cart.append({"name": item['name'], "price": item['price']})
-                st.toast(f"'{item['name']}' 담기 완료!")
+                add_to_cart(item['name'], item['price'])
 
     st.markdown("---")
     
@@ -276,8 +293,7 @@ elif st.session_state.page == "메뉴":
                         </div>
                     """, unsafe_allow_html=True)
                     if st.button(f"선택하기", key=f"cat_{tab_idx}_{item_idx}"):
-                        st.session_state.cart.append({"name": item_name, "price": item_data['price']})
-                        st.toast(f"'{item_name}' 담기 완료!")
+                        add_to_cart(item_name, item_data['price'])
 
     st.markdown("---")
     
@@ -300,7 +316,7 @@ elif st.session_state.page == "메뉴":
     else:
         st.markdown("<div class='custom-text'>아직 선택하신 메뉴가 없습니다. 위에서 메뉴를 눌러주세요.</div>", unsafe_allow_html=True)
 
-# --- 11. 페이지 3: 결제 화면 ---
+# --- 12. 페이지 3: 결제 화면 ---
 elif st.session_state.page == "결제":
     st.markdown(f"<div class='custom-title'>💳 주문 확인 및 결제</div>", unsafe_allow_html=True)
     
@@ -333,14 +349,3 @@ elif st.session_state.page == "결제":
     st.markdown("<div class='custom-sub'>🆘 도움이 필요하신가요?</div>", unsafe_allow_html=True)
     if st.button("🔔 직원 호출하기 (도움 필요)", key="call_staff"):
         st.warning("직원을 불렀습니다. 잠시만 기다려 주시면 친절히 안내해 드리겠습니다!")
-
-# --- 12. 실시간 카운트다운 전역 로직 ---
-if st.session_state.time_left > 0:
-    time.sleep(1)
-    st.session_state.time_left -= 1
-    st.rerun()
-else:
-    st.warning("⏱️ 이용시간이 만료되어 처음 화면으로 돌아갑니다.")
-    time.sleep(2)
-    reset_to_home()
-    st.rerun()
